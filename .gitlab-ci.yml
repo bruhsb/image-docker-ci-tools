@@ -5,77 +5,11 @@ services:
 variables:
   DOCKER_DRIVER: overlay
   SPRING_PROFILES_ACTIVE: gitlab-ci
-  REGION: southamerica-east1
 
 ###########
-# Order of Execution --------------------------------------------------------
+# Build Image to docker hub --------------------------------------------------------
 
-stages:
-  - build
-
-###########
-# Build Image to gcr.io --------------------------------------------------------
-
-build:
-  image: google/cloud-sdk
-  stage: build
-  script:
-  - echo "$GITLAB_CODES_KEY" > .gcp_credentials.json
-  - auth_gcp $REGION idwall-codes
-  - build
-
-######### >>
-# Custom Functions ----------- > DO NOT EDIT!! < -------------------------------
-
-.custom_functions: &custom_functions |
-
-  # Function to build image to gcr.io ------------------------------------------
-  function build() {
-    cat << EOF > cloudbuild.yaml
-  steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['pull', 'gcr.io/idwall-codes/${CI_PROJECT_NAME}:latest']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: [
-              'build',
-                '-t', 'gcr.io/idwall-codes/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}',
-                '--cache-from', 'gcr.io/idwall-codes/${CI_PROJECT_NAME}:latest',
-                '.'
-          ]
-  images: ['gcr.io/idwall-codes/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}']
-  EOF
-
-    cat << EOF > image_generator.sh
-
-  if [ $(gcloud container images list-tags gcr.io/idwall-codes/${CI_PROJECT_NAME} 2>&1 | wc -l) -gt 1 ]
-  then
-    echo "##### BUILD WITH CACHE #####"
-    gcloud builds submit  --timeout=20000 --config=./cloudbuild.yaml .
-  else
-    echo "##### BUILD WITHOUT CACHE #####"
-    gcloud builds submit --timeout=20000 --tag gcr.io/idwall-codes/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA} .
-  fi
-  EOF
-    chmod +x image_generator.sh
-    sh image_generator.sh
-    gcloud container images add-tag gcr.io/idwall-codes/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA} gcr.io/idwall-codes/${CI_PROJECT_NAME}:latest
-  }
-
-  # Function to Auth to GCP ----------------------------------------------------
-    # 1º parametro: Região
-    # 2º parametro: Projeto
-    # 3º parametro: Cluster k8s
-  function auth_gcp(){
-
-    echo "## >> Auth on GCP << ## "
-    gcloud auth activate-service-account --key-file .gcp_credentials.json
-    gcloud config set compute/zone $1
-    gcloud config set project $2
-    if [ $3 ]; then
-      echo "## >> Auth on k8s Cluster: $3 << ##"
-      gcloud container clusters get-credentials $3
-    fi
-  }
-
-before_script:
-  - *custom_functions
+ build_image:
+   script:
+     - docker build -t brunosb/image-docker-ci-tool .
+     - docker push brunosb/image-docker-ci-tools:latest
