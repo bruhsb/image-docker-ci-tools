@@ -1,15 +1,19 @@
-image: docker:latest
+image: docker:stable
+
 services:
   - docker:dind
 
 variables:
-  DOCKER_DRIVER: overlay
-  SPRING_PROFILES_ACTIVE: gitlab-ci
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
 
-###########
-# Build Image to docker hub --------------------------------------------------------
+before_script:
+  - docker login -u $REGISTRY_USER -p $REGISTRY_PASSWORD
 
- build_image:
-   script:
-     - docker build -t brunosb/image-docker-ci-tool .
-     - docker push brunosb/image-docker-ci-tools:latest
+build:
+  stage: build
+  script:
+    - docker pull $REGISTRY_IMAGE:latest || true
+    - docker build --cache-from $REGISTRY_IMAGE:latest --tag $REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $REGISTRY_IMAGE:latest .
+    - docker push $REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker push $REGISTRY_IMAGE:latest
