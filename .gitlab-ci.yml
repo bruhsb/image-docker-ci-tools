@@ -26,9 +26,12 @@ semantic_release:
 build:
   stage: build
   script:
+    - TAG=`git tag | git tag | tail -1 `
     - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD"
     - docker pull $REGISTRY_IMAGE:latest || true
     - docker build --cache-from $REGISTRY_IMAGE:latest --tag $REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker tag $REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA $REGISTRY_IMAGE:latest
+    - docker tag $REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA $REGISTRY_IMAGE:$TAG
     - docker push $REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $REGISTRY_IMAGE:latest
-    - docker push $REGISTRY_IMAGE:`git tag | grep -m1 ""`
+    - docker push $REGISTRY_IMAGE:$TAG
