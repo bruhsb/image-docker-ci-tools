@@ -20,6 +20,12 @@ RUN wget -q -O vault.zip https://releases.hashicorp.com/vault/${VAULT_VERSION}/v
     && unzip vault.zip -d /usr/local/bin \
     && rm -rf vault.zip
 
+## Install kustomize
+ARG KUSTOMIZE_VERSION="v3.4.0"
+
+RUN wget -q https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz -O - | tar -xzO kustomize > /usr/local/bin/kustomize \
+    && chmod +x /usr/local/bin/kustomize
+
 ## Install Helm
 ARG HELM_VERSION="v2.9.0"
 RUN wget -q https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz -O - | tar -xzO linux-amd64/helm > /usr/local/bin/helm \
