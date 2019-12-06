@@ -12,7 +12,9 @@ RUN wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz \
     && /opt/google-cloud-sdk/bin/gcloud --quiet components update
 
 ## Install kubectl
-RUN /opt/google-cloud-sdk/bin/gcloud components install kubectl -q --no-user-output-enabled
+ARG KUBECTL_VERSION="v1.16.0"
+RUN wget -q -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
+    chmod +x /usr/local/bin/kubectl
 
 ## Install Vault
 ARG VAULT_VERSION="1.1.2"
