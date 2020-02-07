@@ -36,7 +36,7 @@ build:
       docker build \
        --cache-from $REGISTRY_IMAGE:latest \
        --tag $REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA \
-       --tag $REGISTRY_IMAGE:latest
+       --tag $REGISTRY_IMAGE:latest \
        --tag $REGISTRY_IMAGE:$TAG
        .
     - docker push $REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
